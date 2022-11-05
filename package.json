@@ -1,0 +1,15 @@
+{
+  "name": "c-mon-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/c-mon-team/c-mon-server.git",
+  "author": "namjiyun <namjiyun3275@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "nodemon": "^2.0.20"
+  },
+  "devDependencies": {
+    "node": "^19.0.1"
+  }
+}
