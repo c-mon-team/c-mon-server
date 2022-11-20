@@ -1,3 +1,3 @@
 module.exports = {
-  // userService: require('./UserService'),
+  groupService: require('./groupService'),
 };
