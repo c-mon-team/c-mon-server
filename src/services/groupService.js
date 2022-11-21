@@ -1,4 +1,4 @@
-const convertSnakeToCamel = require('../modules/convertSnakeToCamel');
+const convertSnakeToCamel = require("../modules/convertSnakeToCamel");
 
 const createGroup = async (client, group, code) => {
   const { rows } = await client.query(
@@ -8,7 +8,7 @@ const createGroup = async (client, group, code) => {
     VALUES ($1, $2)
     RETURNING *
     `,
-    [group, code],
+    [group, code]
   );
   return convertSnakeToCamel.keysToCamel(rows[0]);
 };

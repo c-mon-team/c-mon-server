@@ -1,3 +1,4 @@
 module.exports = {
-  groupService: require('./groupService'),
+  groupService: require("./groupService"),
+  choiceService: require("./choiceService"),
 };
