@@ -1,4 +1,4 @@
-const convertSnakeToCamel = require('../modules/convertSnakeToCamel');
+const convertSnakeToCamel = require("../modules/convertSnakeToCamel");
 
 const createGroup = async (client, group, code) => {
   const { rows } = await client.query(
@@ -8,7 +8,7 @@ const createGroup = async (client, group, code) => {
     VALUES ($1, $2)
     RETURNING *
     `,
-    [group, code],
+    [group, code]
   );
   return convertSnakeToCamel.keysToCamel(rows[0]);
 };
@@ -20,7 +20,7 @@ const getGroupMember = async (client, code) => {
     FROM "group"
     WHERE code = $1 
     `,
-    [code],
+    [code]
   );
   const groupId = group[0].id;
   const groupName = group[0].name;
@@ -30,9 +30,9 @@ const getGroupMember = async (client, code) => {
     FROM member
     WHERE group_id = $1
     `,
-    [groupId],
+    [groupId]
   );
-
   return convertSnakeToCamel.keysToCamel({ groupId, groupName, members });
 };
+
 module.exports = { createGroup, getGroupMember };
