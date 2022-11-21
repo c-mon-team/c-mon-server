@@ -1,4 +1,4 @@
-const convertSnakeToCamel = require('../modules/convertSnakeToCamel');
+const convertSnakeToCamel = require("../modules/convertSnakeToCamel");
 
 const createMemberChoice = async (client, groupId, userName, choice) => {
   const { rows: createMember } = await client.query(
@@ -8,7 +8,7 @@ const createMemberChoice = async (client, groupId, userName, choice) => {
     VALUES ($1, $2)
     RETURNING *
     `,
-    [userName, groupId],
+    [userName, groupId]
   );
   const member = createMember[0].id;
   for (let c of choice) {
@@ -18,7 +18,7 @@ const createMemberChoice = async (client, groupId, userName, choice) => {
         FROM subcategory
         WHERE name = $1
         `,
-      [c],
+      [c]
     );
     if (!subcategory[0]) {
       throw 404;
@@ -31,10 +31,23 @@ const createMemberChoice = async (client, groupId, userName, choice) => {
         VALUES ($1, $2)
         RETURNING *
         `,
-      [member, subcategory[0].id],
+      [member, subcategory[0].id]
     );
   }
   return convertSnakeToCamel.keysToCamel(createMember);
 };
 
-module.exports = { createMemberChoice };
+const deleteMemberChoice = async (client, id) => {
+  const { rows: deleteMember } = await client.query(
+    `
+    DELETE FROM choice
+    WHERE member_id=$1
+    RETURNING *
+    `,
+    [id]
+  );
+
+  return convertSnakeToCamel.keysToCamel(deleteMember);
+};
+
+module.exports = { createMemberChoice, deleteMemberChoice };
