@@ -48,58 +48,60 @@ const getGroupResult = async (req, res) => {
   try {
     client = await db.connect(req);
 
+    let memberId;
     if (id == 0) {
-      // 카테고리 가져오기
-      const category = await choiceService.getGroupCategoryResult(
-        client,
-        groupId
-      );
+      memberId = id;
+    } else {
+      memberId = id;
+      console.log(memberId);
+    }
 
-      // 결과 없는 경우
-      if (category.length < 1) {
-        res.status(statusCode.OK).send(
-          util.success(statusCode.OK, responseMessage.SUCCESS, {
-            categoryList: [],
-          })
-        );
-      }
+    // 멤버 아이디로 카테고리 가져오기
+    const category = await choiceService.getGroupCategoryResult(
+      client,
+      memberId
+    );
 
-      // 카테고리 추출 후 멤버 가져오기
-      const categoryId = extractValues(category, "id");
-      const memberList = await choiceService.getMembersWithCategoryId(
-        client,
-        groupId,
-        categoryId
-      );
-
-      // 멤버 데이터 가공
-      const member = memberList.reduce((result, m) => {
-        const a = result.find(({ id }) => id === m.id);
-        a
-          ? a.memberList.push(m.name)
-          : result.push({ id: m.id, memberList: [m.name] });
-        return result;
-      }, []);
-
-      // 카테고리-멤버 매핑
-      const map = new Map();
-      category.forEach((item) => map.set(item.id, item));
-      member.forEach((item) =>
-        map.set(item.id, { ...map.get(item.id), ...item })
-      );
-      const data = Array.from(map.values());
-
-      // 결과
-      res.status(statusCode.OK).send(
+    // 결과 없는 경우
+    if (category.length < 1) {
+      return res.status(statusCode.OK).send(
         util.success(statusCode.OK, responseMessage.SUCCESS, {
-          categoryList: data,
+          categoryList: [],
         })
       );
-    } else {
-      res
-        .status(statusCode.OK)
-        .send(util.success(statusCode.OK, responseMessage.SUCCESS, data));
     }
+
+    // 카테고리 추출 후 멤버 가져오기
+    const categoryId = extractValues(category, "id");
+    const memberList = await choiceService.getMembersWithCategoryId(
+      client,
+      memberId,
+      categoryId
+    );
+
+    // 멤버 데이터 가공
+    const member = memberList.reduce((result, m) => {
+      const a = result.find(({ id }) => id === m.id);
+      a
+        ? a.memberList.push(m.name)
+        : result.push({ id: m.id, memberList: [m.name] });
+      return result;
+    }, []);
+
+    // 카테고리-멤버 매핑
+    const map = new Map();
+    category.forEach((item) => map.set(item.id, item));
+    member.forEach((item) =>
+      map.set(item.id, { ...map.get(item.id), ...item })
+    );
+    const data = Array.from(map.values());
+
+    // 결과
+    res.status(statusCode.OK).send(
+      util.success(statusCode.OK, responseMessage.SUCCESS, {
+        categoryList: data,
+      })
+    );
   } catch (error) {
     console.log(error);
     res
