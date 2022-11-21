@@ -38,63 +38,34 @@ const createGroup = async (req, res) => {
 };
 
 const getGroupResult = async (req, res) => {
-  const { groupId } = req.params;
+  const { code } = req.params;
   const { id } = req.query;
-  if (!groupId || !id)
+  if (!code || !id)
     return res
       .status(statusCode.BAD_REQUEST)
       .send(util.fail(statusCode.BAD_REQUEST, responseMessage.NULL_VALUE));
   let client;
   try {
+    client = await db.connect(req);
     let memberId;
+    const members = await groupService.getGroupMember(client, code);
+    memberId = extractValues(members.members, "id");
     if (id == 0) {
-      memberId = id;
     } else {
+      const ids = id.split(",");
+      ids.forEach(function (item) {
+        let check = false;
+        if (memberId.includes(parseInt(item))) {
+          check = true;
+        }
+        if (!check) throw 400;
+      });
       memberId = id;
-      console.log(memberId);
     }
-
-    // 멤버 아이디로 카테고리 가져오기
-    const category = await choiceService.getGroupCategoryResult(
+    const data = await choiceService.getGroupCategoryResultByMemberId(
       client,
       memberId
     );
-
-    // 결과 없는 경우
-    if (category.length < 1) {
-      return res.status(statusCode.OK).send(
-        util.success(statusCode.OK, responseMessage.SUCCESS, {
-          categoryList: [],
-        })
-      );
-    }
-
-    // 카테고리 추출 후 멤버 가져오기
-    const categoryId = extractValues(category, "id");
-    const memberList = await choiceService.getMembersWithCategoryId(
-      client,
-      memberId,
-      categoryId
-    );
-
-    // 멤버 데이터 가공
-    const member = memberList.reduce((result, m) => {
-      const a = result.find(({ id }) => id === m.id);
-      a
-        ? a.memberList.push(m.name)
-        : result.push({ id: m.id, memberList: [m.name] });
-      return result;
-    }, []);
-
-    // 카테고리-멤버 매핑
-    const map = new Map();
-    category.forEach((item) => map.set(item.id, item));
-    member.forEach((item) =>
-      map.set(item.id, { ...map.get(item.id), ...item })
-    );
-    const data = Array.from(map.values());
-
-    // 결과
     res.status(statusCode.OK).send(
       util.success(statusCode.OK, responseMessage.SUCCESS, {
         categoryList: data,
@@ -102,6 +73,11 @@ const getGroupResult = async (req, res) => {
     );
   } catch (error) {
     console.log(error);
+    if (error == 400) {
+      return res
+        .status(statusCode.BAD_REQUEST)
+        .send(util.fail(statusCode.BAD_REQUEST, responseMessage.NOTMEMBER));
+    }
     res
       .status(statusCode.INTERNAL_SERVER_ERROR)
       .send(

@@ -1,7 +1,8 @@
 const convertSnakeToCamel = require("../modules/convertSnakeToCamel");
+const { extractValues } = require("../modules/extractValues");
 
-const getGroupCategoryResult = async (client, memberId) => {
-  const { rows } = await client.query(
+const getGroupCategoryResultByMemberId = async (client, memberId) => {
+  const { rows: category } = await client.query(
     `
     SELECT c.id, c.name FROM "category" c
     JOIN "subcategory" s
@@ -16,11 +17,11 @@ const getGroupCategoryResult = async (client, memberId) => {
     LIMIT 3;
     `
   );
-  return convertSnakeToCamel.keysToCamel(rows);
-};
+  if (category.length < 1) return { categoryList: [] };
 
-const getMembersWithCategoryId = async (client, memberId, categoryId) => {
-  const { rows } = await client.query(
+  const categoryId = extractValues(category, "id");
+
+  const { rows: memberList } = await client.query(
     `
       SELECT c.id, m.name FROM "category" c
       JOIN "subcategory" s
@@ -29,11 +30,25 @@ const getMembersWithCategoryId = async (client, memberId, categoryId) => {
       ON s.id=ch.subcategory_id
       JOIN "member" m
       ON ch.member_id=m.id
-      WHERE  m.id IN (${memberId})
+      WHERE m.id IN (${memberId})
       AND c.id IN (${categoryId.join(",")});
       `
   );
-  return convertSnakeToCamel.keysToCamel(rows);
+
+  const member = memberList.reduce((result, m) => {
+    const a = result.find(({ id }) => id === m.id);
+    a
+      ? a.memberList.push(m.name)
+      : result.push({ id: m.id, memberList: [m.name] });
+    return result;
+  }, []);
+
+  const map = new Map();
+  category.forEach((item) => map.set(item.id, item));
+  member.forEach((item) => map.set(item.id, { ...map.get(item.id), ...item }));
+  const result = Array.from(map.values());
+
+  return convertSnakeToCamel.keysToCamel(result);
 };
 
-module.exports = { getGroupCategoryResult, getMembersWithCategoryId };
+module.exports = { getGroupCategoryResultByMemberId };

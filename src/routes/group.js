@@ -4,6 +4,6 @@ const router = express.Router();
 
 router.post("/", group.createGroup);
 router.get("/:code", group.getGroupMember);
-router.get("/:groupId/choice/member", group.getGroupResult);
+router.get("/:code/choice/member", group.getGroupResult);
 
 module.exports = router;

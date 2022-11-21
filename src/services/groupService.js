@@ -20,7 +20,7 @@ const getGroupMember = async (client, code) => {
     FROM "group"
     WHERE code = $1 
     `,
-    [code],
+    [code]
   );
   const groupId = group[0].id;
   const groupName = group[0].name;
@@ -30,9 +30,9 @@ const getGroupMember = async (client, code) => {
     FROM member
     WHERE group_id = $1
     `,
-    [groupId],
+    [groupId]
   );
-
   return convertSnakeToCamel.keysToCamel({ groupId, groupName, members });
 };
+
 module.exports = { createGroup, getGroupMember };
