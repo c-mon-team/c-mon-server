@@ -1,7 +1,7 @@
 const express = require('express');
+const member = require('../controllers/member');
 const router = express.Router();
 
-router.use('/group', require('./group'));
-router.use('/member', require('./member'));
+router.post('/', member.createMemberChoice);
 
 module.exports = router;
