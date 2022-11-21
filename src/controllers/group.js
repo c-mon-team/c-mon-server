@@ -91,6 +91,43 @@ const getGroupResult = async (req, res) => {
   }
 };
 
+const getGroupResultDetail = async (req, res) => {
+  const { code } = req.params;
+  if (!code)
+    return res
+      .status(statusCode.BAD_REQUEST)
+      .send(util.fail(statusCode.BAD_REQUEST, responseMessage.NULL_VALUE));
+  let client;
+  try {
+    client = await db.connect(req);
+    const members = await groupService.getGroupMember(client, code);
+    const memberId = extractValues(members.members, "id");
+    const choice = await choiceService.getGroupResultDetail(client, memberId);
+    res.status(statusCode.OK).send(
+      util.success(statusCode.OK, responseMessage.SUCCESS, {
+        memberList: choice,
+      })
+    );
+  } catch (error) {
+    console.log(error);
+    if (error == 400) {
+      return res
+        .status(statusCode.BAD_REQUEST)
+        .send(util.fail(statusCode.BAD_REQUEST, responseMessage.NOTMEMBER));
+    }
+    res
+      .status(statusCode.INTERNAL_SERVER_ERROR)
+      .send(
+        util.fail(
+          statusCode.INTERNAL_SERVER_ERROR,
+          responseMessage.INTERNAL_SERVER_ERROR
+        )
+      );
+  } finally {
+    client.release();
+  }
+};
+
 const getGroupMember = async (req, res) => {
   const { code } = req.params;
   if (!code)
@@ -119,4 +156,9 @@ const getGroupMember = async (req, res) => {
   }
 };
 
-module.exports = { createGroup, getGroupResult, getGroupMember };
+module.exports = {
+  createGroup,
+  getGroupResult,
+  getGroupResultDetail,
+  getGroupMember,
+};
