@@ -38,7 +38,7 @@ const createMemberChoice = async (client, groupId, userName, choice) => {
 };
 
 const deleteMemberChoice = async (client, id) => {
-  const { rows: deleteMember } = await client.query(
+  const { rows: deleteMemberChoice } = await client.query(
     `
     DELETE FROM choice
     WHERE member_id=$1
@@ -47,7 +47,20 @@ const deleteMemberChoice = async (client, id) => {
     [id]
   );
 
+  return convertSnakeToCamel.keysToCamel(deleteMemberChoice);
+};
+
+const deleteMember = async (client, id) => {
+  const { rows: deleteMember } = await client.query(
+    `
+    DELETE FROM member
+    WHERE id=$1
+    RETURNING *
+    `,
+    [id]
+  );
+
   return convertSnakeToCamel.keysToCamel(deleteMember);
 };
 
-module.exports = { createMemberChoice, deleteMemberChoice };
+module.exports = { createMemberChoice, deleteMemberChoice, deleteMember };
